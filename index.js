@@ -106,7 +106,6 @@ io.on("connection", (socket) => {
     usuariosEnLinea = usuariosEnLinea.filter(
       (usuario) => usuario.idCliente !== idCliente
     );
-    console.log("usuario esta desconectado", usuariosEnLinea);
     console.log("usuario desconectado", idCliente);
     // Envia todos los usuarios en linea a todos los usuarios
     io.emit("obtener-usuarios", JSON.stringify(usuariosEnLinea));
