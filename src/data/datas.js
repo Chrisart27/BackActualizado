@@ -10,6 +10,53 @@ const database = mysql.createConnection({
 });
 
 class userData {
+  static validarClicks(idCliente, callback) {
+    const query = `
+      SELECT 
+          CASE 
+              WHEN EXISTS (
+                  SELECT 1 
+                  FROM plan_cliente 
+                  INNER JOIN plan ON plan_cliente.idPlan = plan.id
+                  WHERE plan_cliente.idCliente = ?
+                  AND EXISTS (
+                      SELECT 1 
+                      FROM pago 
+                      WHERE pago.idPlanCliente = plan_cliente.id
+                      AND pago.fecha >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
+                  )
+                  AND (
+                      SELECT COUNT(*) 
+                      FROM click 
+                      WHERE click.idCliente = ? 
+                      AND click.fecha >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
+                  ) < plan.clicks
+              ) THEN TRUE
+              WHEN (
+                  SELECT COUNT(*) 
+                  FROM click 
+                  WHERE click.idCliente = ? 
+                  AND click.fecha >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
+              ) < (
+                  SELECT gratis 
+                  FROM click_admin 
+                  ORDER BY version DESC 
+                  LIMIT 1
+              ) THEN TRUE
+              ELSE FALSE
+          END AS result
+  `;
+    database.query(query, [idCliente, idCliente, idCliente], (err, result) => {
+      if (err) {
+        console.error("Error al validar los clicks: " + err.message);
+        callback(err, false);
+      } else {
+        console.log("Clicks validados exitosamente.");
+        callback(null, result[0].result);
+      }
+    });
+  }
+
   static agregarClicks(idCliente, idGrua, callback) {
     const query = "INSERT INTO click (idCliente, idGrua) VALUES (?, ?)";
     const values = [idCliente, idGrua];

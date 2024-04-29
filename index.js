@@ -16,7 +16,7 @@ const sendEmail = require("./src/routes/email"); // Agregado
 const cambiarEstadoGrua = require("./src/routes/cambiarEstadoGrua"); // Agregado
 const obtenerGruasPendientes = require("./src/routes/getGruasPendientes"); // Agregado
 const loginAdmin = require("./src/routes/loginAdmin"); // Agregado
-const agregarClicks = require("./src/routes/agregarClicks"); // Agregado
+const clicksRoutes = require("./src/routes/clicksRoutes"); // Agregado
 const cors = require("cors");
 
 const app = express()
@@ -51,7 +51,7 @@ app.use("/sendEmail", sendEmail); // Agregado
 app.use("/cambiarEstadoGrua", cambiarEstadoGrua); // Agregado
 app.use("/getGruasPendiente", obtenerGruasPendientes); // Agregado
 app.use("/loginAdmin", loginAdmin); // Agregado
-app.use("/agregarClick", agregarClicks); // Agregado
+app.use("/clicks", clicksRoutes); // Agregado
 
 const PORT = process.env.PORT ?? 3000;
 
@@ -112,6 +112,8 @@ io.on("connection", (socket) => {
     // Envia todos los usuarios en linea a todos los usuarios
     io.emit("obtener-usuarios", JSON.stringify(usuariosEnLinea));
   });
+
+  socket.on("validar-clicks", (idCliente) => {});
 });
 
 server.listen(PORT, () => {

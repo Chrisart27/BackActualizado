@@ -22,6 +22,24 @@ function agregarClicks(req, res) {
   });
 }
 
+function validarClicks(req, res) {
+  const idCliente = req.params.idCliente;
+
+  userData.validarClicks(idCliente, (err, result) => {
+    if (err) {
+      return res.status(500).json({
+        message: "Error al validar los clicks",
+        error: err.message,
+      });
+    }
+    if (!result) {
+      return res.status(400).json({ message: "No se pudo validar los clicks" });
+    }
+    return res.status(200).json({ status: result });
+  });
+}
+
 module.exports = {
   agregarClicks,
+  validarClicks,
 };
