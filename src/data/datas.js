@@ -10,6 +10,20 @@ const database = mysql.createConnection({
 });
 
 class userData {
+  static agregarClicks(idCliente, idGrua, callback) {
+    const query = "INSERT INTO click (idCliente, idGrua) VALUES (?, ?)";
+    const values = [idCliente, idGrua];
+    database.query(query, values, (err, result) => {
+      if (err) {
+        console.error("Error al agregar los clicks: " + err.message);
+        callback(err, false);
+      } else {
+        console.log("Clicks agregados exitosamente.");
+        callback(null, true);
+      }
+    });
+  }
+
   static addClient(cliente, callback) {
     const query =
       "INSERT INTO cliente (nombre, email, contrasenia, telefono, idRol) VALUES (?, ?, ?, ?, ?)";
@@ -130,18 +144,68 @@ class userData {
     });
   }
 
-  static obtenerGruas(callback) {
-    // const query = 'SELECT * FROM grua WHERE estadoGrua = 1';
-    const query = "SELECT * FROM grua";
+  static obtenerNumeroDeClicksGratis(callback) {
+    const query =
+      "SELECT gratis FROM click_admin ORDER BY version DESC LIMIT 1";
     database.query(query, (err, result) => {
       if (err) {
         console.error(
-          "Error al obtener grúas desde la base de datos:",
+          "Error al obtener el número de clicks gratis desde la base de datos:",
           err.message
         );
         callback(err, null);
       } else {
-        callback(null, result);
+        callback(null, result[0].gratis);
+      }
+    });
+  }
+
+  static obtenerGruas(callback) {
+    this.obtenerNumeroDeClicksGratis((err, result) => {
+      if (err) {
+        callback(err, null);
+      } else {
+        const numeroDeClicksGratis = result;
+
+        const query = `
+            SELECT grua.* 
+            FROM grua 
+            WHERE EXISTS (
+                SELECT 1 
+                FROM plan_cliente 
+                INNER JOIN plan ON plan_cliente.idPlan = plan.id
+                WHERE plan_cliente.idCliente = grua.idCliente
+                AND EXISTS (
+                    SELECT 1 
+                    FROM pago 
+                    WHERE pago.idPlanCliente = plan_cliente.id 
+                    AND pago.fecha >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
+                )
+                AND (
+                    SELECT COUNT(*) 
+                    FROM click 
+                    WHERE click.idCliente = grua.idCliente 
+                    AND click.fecha >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
+                ) < plan.clicks
+            )
+            OR (
+                SELECT COUNT(*) 
+                FROM click 
+                WHERE click.idCliente = grua.idCliente 
+                AND click.fecha >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
+            ) < ?
+        `;
+        database.query(query, [numeroDeClicksGratis], (err, result) => {
+          if (err) {
+            console.error(
+              "Error al obtener grúas desde la base de datos:",
+              err.message
+            );
+            callback(err, null);
+          } else {
+            callback(null, result);
+          }
+        });
       }
     });
   }

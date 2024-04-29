@@ -16,6 +16,7 @@ const sendEmail = require("./src/routes/email"); // Agregado
 const cambiarEstadoGrua = require("./src/routes/cambiarEstadoGrua"); // Agregado
 const obtenerGruasPendientes = require("./src/routes/getGruasPendientes"); // Agregado
 const loginAdmin = require("./src/routes/loginAdmin"); // Agregado
+const agregarClicks = require("./src/routes/agregarClicks"); // Agregado
 const cors = require("cors");
 
 const app = express()
@@ -50,6 +51,7 @@ app.use("/sendEmail", sendEmail); // Agregado
 app.use("/cambiarEstadoGrua", cambiarEstadoGrua); // Agregado
 app.use("/getGruasPendiente", obtenerGruasPendientes); // Agregado
 app.use("/loginAdmin", loginAdmin); // Agregado
+app.use("/agregarClick", agregarClicks); // Agregado
 
 const PORT = process.env.PORT ?? 3000;
 
